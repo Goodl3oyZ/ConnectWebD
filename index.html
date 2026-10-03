@@ -1394,17 +1394,8 @@
 
         <!-- VIEW 3: RAW DATASET INSPECTOR -->
         <div id="view-raw-data" class="tab-view">
-            <div class="chart-card" style="margin-bottom: 1.5rem;">
-                <div class="chart-card-title">Worker Dataset (worker.csv)</div>
-                <div class="table-wrapper"><table class="emp-table" id="raw-table-worker"><thead></thead><tbody></tbody></table></div>
-            </div>
-            <div class="chart-card" style="margin-bottom: 1.5rem;">
-                <div class="chart-card-title">Bonus Dataset (bonus.csv)</div>
-                <div class="table-wrapper"><table class="emp-table" id="raw-table-bonus"><thead></thead><tbody></tbody></table></div>
-            </div>
-            <div class="chart-card">
-                <div class="chart-card-title">Title Dataset (title.csv)</div>
-                <div class="table-wrapper"><table class="emp-table" id="raw-table-title"><thead></thead><tbody></tbody></table></div>
+            <div id="raw-tables-container">
+                <!-- Dynamic Tables Rendered Here -->
             </div>
         </div>
     </div>
@@ -2022,24 +2013,54 @@
             try {
                 const res = await fetch('/api/tables');
                 const data = await res.json();
+                const container = document.getElementById('raw-tables-container');
+                if (!container) return;
+                container.innerHTML = '';
 
-                renderRawTableHtml('raw-table-worker', data.Worker);
-                renderRawTableHtml('raw-table-bonus', data.Bonus);
-                renderRawTableHtml('raw-table-title', data.Title);
+                const tableNames = Object.keys(data);
+                if (tableNames.length === 0) {
+                    container.innerHTML = '<div class="chart-card"><div class="chart-card-title">No tables found in database.</div></div>';
+                    return;
+                }
+
+                for (const tableName of tableNames) {
+                    const rows = data[tableName] || [];
+                    const card = document.createElement('div');
+                    card.className = 'chart-card';
+                    card.style.marginBottom = '1.5rem';
+
+                    const cardTitle = document.createElement('div');
+                    cardTitle.className = 'chart-card-title';
+                    cardTitle.innerText = `Database Table: ${tableName} (${rows.length} rows)`;
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'table-wrapper';
+
+                    const table = document.createElement('table');
+                    table.className = 'emp-table';
+
+                    if (rows.length > 0) {
+                        const cols = Object.keys(rows[0]);
+                        table.innerHTML = `
+                            <thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+                            <tbody>
+                                ${rows.map(r => `
+                                    <tr>${cols.map(c => `<td>${r[c] !== null ? r[c] : '<em>NULL</em>'}</td>`).join('')}</tr>
+                                `).join('')}
+                            </tbody>
+                        `;
+                    } else {
+                        table.innerHTML = '<tbody><tr><td style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Table is empty (0 rows).</td></tr></tbody>';
+                    }
+
+                    wrapper.appendChild(table);
+                    card.appendChild(cardTitle);
+                    card.appendChild(wrapper);
+                    container.appendChild(card);
+                }
             } catch (err) {
                 console.error("Failed loading raw dataset tables", err);
             }
-        }
-
-        function renderRawTableHtml(id, rows) {
-            const table = document.getElementById(id);
-            if (!rows || rows.length === 0) return;
-            const cols = Object.keys(rows[0]);
-
-            table.querySelector('thead').innerHTML = `<tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>`;
-            table.querySelector('tbody').innerHTML = rows.map(r => `
-                <tr>${cols.map(c => `<td>${r[c]}</td>`).join('')}</tr>
-            `).join('');
         }
     </script>
 </body>

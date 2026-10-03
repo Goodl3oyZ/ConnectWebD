@@ -135,14 +135,12 @@ class DBRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(employees)
 
         elif parsed.path == '/api/tables':
-            workers = db.execute_query("SELECT * FROM Worker")
-            bonuses = db.execute_query("SELECT * FROM Bonus")
-            titles = db.execute_query("SELECT * FROM Title")
-            self.send_json({
-                "Worker": workers,
-                "Bonus": bonuses,
-                "Title": titles
-            })
+            tables_list = db.execute_query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
+            result = {}
+            for t in tables_list:
+                t_name = t['name']
+                result[t_name] = db.execute_query(f'SELECT * FROM "{t_name}"')
+            self.send_json(result)
 
         else:
             # Serve static files (index.html, etc.)
