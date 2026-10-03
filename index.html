@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Workforce Compensation Intelligence | Executive Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-surface-subtle: #f1f5f9;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            --brand-primary: #4f46e5;
+            --brand-primary-light: #eef2ff;
+            --brand-cyan: #0284c7;
+            --brand-cyan-light: #e0f2fe;
+            --brand-emerald: #059669;
+            --brand-emerald-light: #ecfdf5;
+            --brand-amber: #d97706;
+            --brand-amber-light: #fef3c7;
+            
+            --dept-admin: #4f46e5;
+            --dept-account: #0284c7;
+            --dept-hr: #059669;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 1.5rem 2rem 3rem 2rem;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* SVG Icon Utilities */
+        .icon {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            stroke-width: 2;
+            stroke: currentColor;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        .icon-lg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        /* Top Header */
+        header.app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-brand h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .header-brand .subtitle {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--brand-primary);
+            margin-top: 0.15rem;
+            letter-spacing: 0.02em;
+        }
+
+        .header-brand .description {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            max-width: 720px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--brand-emerald-light);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+            color: var(--brand-emerald);
+            padding: 0.4rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--brand-emerald);
+            border-radius: 50%;
+        }
+
+        /* Global View Navigation Tabs */
+        .global-tabs-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 1.5rem;
+        }
+
+        .global-tabs {
+            display: inline-flex;
+            gap: 0.35rem;
+            background: var(--bg-surface-subtle);
+            padding: 0.3rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            min-width: max-content;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-surface);
+            color: var(--brand-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-view {
+            display: none;
+        }
+
+        .tab-view.active {
+            display: block;
+        }
+
+        /* Filter Bar Container */
+        .filter-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .filter-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .active-filter-badge {
+            background: var(--brand-primary-light);
+            color: var(--brand-primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            white-space: nowrap;
+        }
+
+        .filter-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-toggle-mobile-filters {
+            display: none;
+            background: var(--bg-surface-subtle);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-reset-filters {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 34px;
+            white-space: nowrap;
+        }
+
+        .btn-reset-filters:hover {
+            background: var(--bg-surface-subtle);
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            align-items: end;
+            margin-top: 0.85rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .filter-group label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .filter-control {
+            background: var(--bg-page);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.15s ease;
+            width: 100%;
+        }
+
+        .filter-control:focus {
+            border-color: var(--brand-primary);
+            background: #fff;
+        }
+
+        /* Executive KPI Cards Grid (5 Cards) */
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .kpi-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.15rem 1.15rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--border-color);
+        }
+
+        .kpi-card.kpi-workers::before { background: var(--brand-primary); }
+        .kpi-card.kpi-payroll::before { background: var(--brand-cyan); }
+        .kpi-card.kpi-avg-sal::before { background: #6366f1; }
+        .kpi-card.kpi-bonus::before { background: var(--brand-emerald); }
+        .kpi-card.kpi-ratio::before { background: var(--brand-amber); }
+
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.4rem;
+        }
+
+        .kpi-meta-name {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .kpi-icon-badge {
+            width: 30px;
+            height: 30px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-surface-subtle);
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .kpi-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
+        }
+
+        .kpi-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* 2-Column Section Layouts */
+        .chart-row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .chart-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chart-card-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .chart-body-container {
+            position: relative;
+            height: 280px;
+        }
+
+        /* Major Visualization Box (Scatter Plot) */
+        .major-viz-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .scatter-container {
+            position: relative;
+            height: 380px;
+        }
+
+        /* Executive Insights Section */
+        .insights-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .insight-card {
+            background: var(--bg-surface-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.15rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .insight-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .insight-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .insight-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+        }
+
+        /* Employee Detail Table Section */
+        .table-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .table-view-toggle {
+            display: inline-flex;
+            background: var(--bg-surface-subtle);
+            padding: 0.25rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            gap: 0.25rem;
+        }
+
+        .btn-view-toggle {
+            background: transparent;
+            border: none;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn-view-toggle.active {
+            background: #fff;
+            color: var(--brand-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-box {
+            position: relative;
+            width: 280px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-page);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.75rem 0.5rem 2.2rem;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .table-scroll-hint {
+            display: none;
+            font-size: 0.75rem;
+            color: var(--brand-primary);
+            margin-bottom: 0.5rem;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table.emp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            text-align: left;
+            min-width: 720px;
+        }
+
+        table.emp-table th {
+            background: var(--bg-surface-subtle);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        table.emp-table th:hover {
+            color: var(--text-primary);
+        }
+
+        table.emp-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        table.emp-table tr:hover td {
+            background: rgba(241, 245, 249, 0.6);
+        }
+
+        /* Mobile Card Roster View */
+        .emp-card-grid {
+            display: none;
+            grid-template-columns: 1fr;
+            gap: 0.85rem;
+        }
+
+        .emp-mobile-card {
+            background: var(--bg-surface-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .emp-mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .emp-mobile-card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .emp-mobile-card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            border-top: 1px dashed var(--border-color);
+            border-bottom: 1px dashed var(--border-color);
+            padding: 0.5rem 0;
+        }
+
+        .emp-mobile-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .emp-mobile-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .emp-mobile-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .badge-dept {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-dept.Admin { background: var(--brand-primary-light); color: var(--brand-primary); }
+        .badge-dept.Account { background: var(--brand-cyan-light); color: var(--brand-cyan); }
+        .badge-dept.HR { background: var(--brand-emerald-light); color: var(--brand-emerald); }
+
+        .badge-title-default {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px dashed var(--border-color);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.25rem;
+        }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Data Quality Container */
+        .dq-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--brand-amber);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .dq-item {
+            background: var(--bg-surface-subtle);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .dq-item-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .dq-item-val {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0.2rem;
+        }
+
+        .dq-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* SQL Workbench View Layout */
+        .sql-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1.5rem;
+        }
+
+        .sql-presets {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .sql-preset-item {
+            background: var(--bg-surface-subtle);
+            border: 1px solid var(--border-color);
+            padding: 0.85rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .sql-preset-item:hover {
+            border-color: var(--brand-primary);
+            background: var(--brand-primary-light);
+        }
+
+        .sql-editor-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        textarea.sql-textarea {
+            width: 100%;
+            height: 160px;
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            outline: none;
+            resize: vertical;
+        }
+
+        /* RESPONSIVE BREAKPOINTS (iPad & Mobile Optimization) */
+        @media (max-width: 1024px) {
+            body {
+                padding: 1.25rem 1.25rem 2.5rem 1.25rem;
+            }
+
+            .kpi-section {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .sql-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 0.85rem 0.85rem 2rem 0.85rem;
+            }
+
+            header.app-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-bottom: 1rem;
+            }
+
+            .header-brand h1 {
+                font-size: 1.35rem;
+            }
+
+            .btn-toggle-mobile-filters {
+                display: inline-flex;
+            }
+
+            .filter-grid {
+                display: none;
+                grid-template-columns: 1fr;
+            }
+
+            .filter-grid.open {
+                display: grid;
+            }
+
+            .filter-header-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .filter-header-actions {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 0.5rem;
+            }
+
+            .btn-toggle-mobile-filters, .btn-reset-filters {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .kpi-section {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .kpi-card {
+                padding: 0.85rem;
+            }
+
+            .kpi-val {
+                font-size: 1.35rem;
+            }
+
+            .kpi-card.kpi-ratio {
+                grid-column: 1 / -1;
+            }
+
+            .chart-row-2col {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-body-container {
+                height: 230px;
+            }
+
+            .scatter-container {
+                height: 280px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .table-scroll-hint {
+                display: flex;
+            }
+
+            /* Responsive View Toggle on Mobile */
+            .emp-card-grid.active {
+                display: grid;
+            }
+
+            .table-wrapper.mobile-hidden {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-brand">
+                <h1>WORKFORCE COMPENSATION INTELLIGENCE</h1>
+                <div class="subtitle">Salary • Bonus • Department • Title Analytics</div>
+                <div class="description">
+                    Executive analytics suite delivering real-time visibility into headcount distribution, base salary commitments, historical bonus allocations, and compensation structure across organizational departments.
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge">
+                    <span class="status-dot"></span> SQLite Connected (company.db)
+                </div>
+            </div>
+        </header>
+
+        <!-- GLOBAL TAB NAVIGATION -->
+        <div class="global-tabs-wrapper">
+            <div class="global-tabs">
+                <button class="tab-btn active" onclick="switchGlobalTab(event, 'dashboard')">
+                    <svg class="icon" viewBox="0 0 24 24"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+                    Executive Dashboard
+                </button>
+                <button class="tab-btn" onclick="switchGlobalTab(event, 'sql-workbench')">
+                    <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    SQL Query Workbench (Q1-Q6)
+                </button>
+                <button class="tab-btn" onclick="switchGlobalTab(event, 'raw-data')">
+                    <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+                    Dataset Inspector
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 1: EXECUTIVE COMPENSATION INTELLIGENCE DASHBOARD -->
+        <div id="view-dashboard" class="tab-view active">
+            
+            <!-- FILTER BAR -->
+            <div class="filter-section">
+                <div class="filter-header">
+                    <div class="filter-header-left">
+                        <div class="filter-title">
+                            <svg class="icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                            Filters
+                        </div>
+                        <span class="active-filter-badge" id="filter-count-badge">All Data (16)</span>
+                    </div>
+
+                    <div class="filter-header-actions">
+                        <button class="btn-toggle-mobile-filters" onclick="toggleMobileFilters()">
+                            <svg class="icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                            Toggle Filters
+                        </button>
+                        <button class="btn-reset-filters" onclick="resetFilters()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-grid" id="filter-grid-container">
+                    <div class="filter-group">
+                        <label for="filter-dept">Department</label>
+                        <select id="filter-dept" class="filter-control" onchange="applyFilters()">
+                            <option value="ALL">All Departments</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Account">Account</option>
+                            <option value="HR">HR</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-title">Job Title</label>
+                        <select id="filter-title" class="filter-control" onchange="applyFilters()">
+                            <option value="ALL">All Titles</option>
+                            <option value="Executive">Executive</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Lead">Lead</option>
+                            <option value="Asst. Manager">Asst. Manager</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-sal-min">Min Annual Salary ($)</label>
+                        <input type="number" id="filter-sal-min" class="filter-control" placeholder="e.g. 50000" oninput="applyFilters()">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-sal-max">Max Annual Salary ($)</label>
+                        <input type="number" id="filter-sal-max" class="filter-control" placeholder="e.g. 500000" oninput="applyFilters()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXECUTIVE KPI SECTION (5 CARDS) -->
+            <div class="kpi-section">
+                <!-- 1. Total Employees -->
+                <div class="kpi-card kpi-workers">
+                    <div class="kpi-top">
+                        <span class="kpi-meta-name">Workforce Headcount</span>
+                        <div class="kpi-icon-badge">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-val" id="kpi-val-workers">--</div>
+                    <div class="kpi-sub">Total active employees</div>
+                </div>
+
+                <!-- 2. Total Annual Payroll -->
+                <div class="kpi-card kpi-payroll">
+                    <div class="kpi-top">
+                        <span class="kpi-meta-name">Total Annual Payroll</span>
+                        <div class="kpi-icon-badge">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-val" id="kpi-val-payroll">--</div>
+                    <div class="kpi-sub">Base salary commitment</div>
+                </div>
+
+                <!-- 3. Average Salary -->
+                <div class="kpi-card kpi-avg-sal">
+                    <div class="kpi-top">
+                        <span class="kpi-meta-name">Average Salary</span>
+                        <div class="kpi-icon-badge">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-val" id="kpi-val-avg-sal">--</div>
+                    <div class="kpi-sub">Mean annual salary / worker</div>
+                </div>
+
+                <!-- 4. Total Bonus -->
+                <div class="kpi-card kpi-bonus">
+                    <div class="kpi-top">
+                        <span class="kpi-meta-name">Total Bonus</span>
+                        <div class="kpi-icon-badge">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 4.8 0 0 1 12 8a4.8 4.8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-val" id="kpi-val-bonus">--</div>
+                    <div class="kpi-sub">Historical bonus pool paid</div>
+                </div>
+
+                <!-- 5. Bonus / Payroll Ratio -->
+                <div class="kpi-card kpi-ratio">
+                    <div class="kpi-top">
+                        <span class="kpi-meta-name">Bonus / Payroll Ratio</span>
+                        <div class="kpi-icon-badge">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-val" id="kpi-val-ratio">--</div>
+                    <div class="kpi-sub">Bonus % relative to salary</div>
+                </div>
+            </div>
+
+            <!-- DEPARTMENT ANALYSIS (2 COLUMNS) -->
+            <div class="chart-row-2col">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <div class="chart-card-title">Annual Payroll by Department</div>
+                            <div class="chart-card-subtitle">Total base salary expenditure ($)</div>
+                        </div>
+                    </div>
+                    <div class="chart-body-container">
+                        <canvas id="chart-dept-payroll"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <div class="chart-card-title">Employees by Department</div>
+                            <div class="chart-card-subtitle">Workforce headcount distribution</div>
+                        </div>
+                    </div>
+                    <div class="chart-body-container">
+                        <canvas id="chart-dept-headcount"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPENSATION ANALYSIS (2 COLUMNS) -->
+            <div class="chart-row-2col">
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <div class="chart-card-title">Average Salary by Department</div>
+                            <div class="chart-card-subtitle">Mean annual salary per employee ($)</div>
+                        </div>
+                    </div>
+                    <div class="chart-body-container">
+                        <canvas id="chart-dept-avg-salary"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <div class="chart-card-title">Bonus Breakdown by Department</div>
+                            <div class="chart-card-subtitle">Total Bonus vs Average Bonus per Employee ($)</div>
+                        </div>
+                    </div>
+                    <div class="chart-body-container">
+                        <canvas id="chart-dept-bonus"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAJOR VISUALIZATION: SALARY VS BONUS SCATTER PLOT -->
+            <div class="major-viz-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Salary vs Bonus Distribution</div>
+                        <div class="chart-card-subtitle">Scatter plot correlating annual base salary against bonus allocations by employee</div>
+                    </div>
+                </div>
+                <div class="scatter-container">
+                    <canvas id="chart-scatter-salary-bonus"></canvas>
+                </div>
+            </div>
+
+            <!-- EXECUTIVE INSIGHTS -->
+            <div class="insights-section">
+                <div class="chart-card-title">Executive Compensation Insights</div>
+                <div class="chart-card-subtitle">Automated analytical observations generated from workforce dataset</div>
+                <div class="insights-grid" id="insights-container">
+                    <!-- Dynamic Insight Cards Rendered Here -->
+                </div>
+            </div>
+
+            <!-- EMPLOYEE DETAIL TABLE -->
+            <div class="table-section">
+                <div class="table-toolbar">
+                    <div>
+                        <div class="chart-card-title">Employee Compensation Directory</div>
+                        <div class="chart-card-subtitle">Complete worker roster with base salary, title, and bonus allocations</div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        <div class="table-view-toggle">
+                            <button id="btn-toggle-table" class="btn-view-toggle active" onclick="setTableViewMode('table')">
+                                <svg class="icon" viewBox="0 0 24 24"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+                                Table View
+                            </button>
+                            <button id="btn-toggle-card" class="btn-view-toggle" onclick="setTableViewMode('card')">
+                                <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                Card View
+                            </button>
+                        </div>
+
+                        <div class="search-box">
+                            <svg class="icon search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <input type="text" id="table-search" class="search-input" placeholder="Search employee, title, department..." oninput="renderTable()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-scroll-hint">
+                    <svg class="icon" viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                    Swipe table left to view Salary, Bonus & Total Earnings
+                </div>
+
+                <div class="table-wrapper" id="emp-table-wrapper">
+                    <table class="emp-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortEmployeeTable('WORKER_ID')">ID ↕</th>
+                                <th onclick="sortEmployeeTable('FULL_NAME')">Employee ↕</th>
+                                <th onclick="sortEmployeeTable('DEPARTMENT')">Department ↕</th>
+                                <th onclick="sortEmployeeTable('TITLE')">Title ↕</th>
+                                <th onclick="sortEmployeeTable('SALARY')">Annual Salary ↕</th>
+                                <th onclick="sortEmployeeTable('TOTAL_BONUS')">Total Bonus ↕</th>
+                                <th onclick="sortEmployeeTable('TOTAL_EARNINGS')">Total Earnings ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emp-table-tbody">
+                            <!-- Table rows rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Responsive Employee Cards Grid -->
+                <div class="emp-card-grid" id="emp-card-grid">
+                    <!-- Mobile cards rendered dynamically -->
+                </div>
+
+                <div class="table-footer">
+                    <span id="table-showing-text">Showing 0 of 0 employees</span>
+                </div>
+            </div>
+
+            <!-- DATA QUALITY SECTION -->
+            <div class="dq-section">
+                <div class="chart-card-title" style="font-size: 0.95rem;">Data Quality & Compliance Standards</div>
+                <div class="dq-grid">
+                    <div class="dq-item">
+                        <div class="dq-item-label">Defaulted Titles ('Executive')</div>
+                        <div class="dq-item-val" id="dq-val-default-titles">8 (50.0%)</div>
+                    </div>
+                    <div class="dq-item">
+                        <div class="dq-item-label">Bonus Recipients</div>
+                        <div class="dq-item-val" id="dq-val-bonus-recipients">3 (18.8%)</div>
+                    </div>
+                    <div class="dq-item">
+                        <div class="dq-item-label">Non-Bonus Staff</div>
+                        <div class="dq-item-val" id="dq-val-no-bonus">13 (81.2%)</div>
+                    </div>
+                </div>
+                <div class="dq-note">
+                    <svg class="icon" viewBox="0 0 24 24" style="color: var(--brand-amber)"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                    Operational Policy Note: Employees without an explicitly assigned job title in the <code>Title</code> dataset are categorized as <strong>Executive</strong> according to business assignment rules.
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: SQL QUERY WORKBENCH (ASSESSMENT QUERIES Q1-Q6) -->
+        <div id="view-sql-workbench" class="tab-view">
+            <div class="sql-layout">
+                <div class="sql-presets">
+                    <h3 style="font-size: 1rem; margin-bottom: 1rem;">Assessment Queries (Q1-Q6)</h3>
+                    <div id="sql-presets-list"></div>
+                </div>
+
+                <div class="sql-editor-box">
+                    <div class="chart-card-title" id="sql-query-title">Custom SQL Query Runner</div>
+                    <textarea id="sql-input-area" class="sql-textarea" placeholder="SELECT * FROM Worker;"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <button class="btn-reset-filters" style="background: var(--brand-primary); color: white; border: none;" onclick="runCustomQuery()">
+                            <svg class="icon" viewBox="0 0 24 24" style="fill: currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            Execute Query
+                        </button>
+                        <span id="sql-exec-info" style="font-size: 0.85rem; color: var(--text-muted);">Ready</span>
+                    </div>
+                    <div class="table-wrapper" id="sql-results-wrapper" style="margin-top: 1rem;">
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            Execute a query or click a preset on the left sidebar to view tabular results.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: RAW DATASET INSPECTOR -->
+        <div id="view-raw-data" class="tab-view">
+            <div class="chart-card" style="margin-bottom: 1.5rem;">
+                <div class="chart-card-title">Worker Dataset (worker.csv)</div>
+                <div class="table-wrapper"><table class="emp-table" id="raw-table-worker"><thead></thead><tbody></tbody></table></div>
+            </div>
+            <div class="chart-card" style="margin-bottom: 1.5rem;">
+                <div class="chart-card-title">Bonus Dataset (bonus.csv)</div>
+                <div class="table-wrapper"><table class="emp-table" id="raw-table-bonus"><thead></thead><tbody></tbody></table></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-title">Title Dataset (title.csv)</div>
+                <div class="table-wrapper"><table class="emp-table" id="raw-table-title"><thead></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let rawEmployees = [];
+        let filteredEmployees = [];
+        let presetQueries = {};
+        let currentViewMode = 'table';
+        
+        // Sorting state
+        let currentSortCol = 'WORKER_ID';
+        let currentSortAsc = true;
+
+        // Chart instances
+        let chartInstances = {};
+
+        // Department Categorical Palette
+        const DEPT_COLORS = {
+            'Admin': '#4f46e5',
+            'Account': '#0284c7',
+            'HR': '#059669',
+            'Default': '#64748b'
+        };
+
+        // Initialize application
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchEmployeesData();
+            await fetchPresetQueries();
+            await fetchRawTables();
+        });
+
+        function switchGlobalTab(evt, tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
+
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('active');
+            }
+            document.getElementById(`view-${tabId}`).classList.add('active');
+        }
+
+        function toggleMobileFilters() {
+            const grid = document.getElementById('filter-grid-container');
+            grid.classList.toggle('open');
+        }
+
+        function setTableViewMode(mode) {
+            currentViewMode = mode;
+            document.getElementById('btn-toggle-table').classList.toggle('active', mode === 'table');
+            document.getElementById('btn-toggle-card').classList.toggle('active', mode === 'card');
+
+            const tableWrapper = document.getElementById('emp-table-wrapper');
+            const cardGrid = document.getElementById('emp-card-grid');
+
+            if (mode === 'card') {
+                tableWrapper.classList.add('mobile-hidden');
+                cardGrid.classList.add('active');
+            } else {
+                tableWrapper.classList.remove('mobile-hidden');
+                cardGrid.classList.remove('active');
+            }
+            renderTable();
+        }
+
+        async function fetchEmployeesData() {
+            try {
+                const res = await fetch('/api/employees');
+                rawEmployees = await res.json();
+                filteredEmployees = [...rawEmployees];
+                updateDashboardUI();
+            } catch (err) {
+                console.error("Error fetching employee dataset", err);
+            }
+        }
+
+        function applyFilters() {
+            const dept = document.getElementById('filter-dept').value;
+            const title = document.getElementById('filter-title').value;
+            const minSal = parseFloat(document.getElementById('filter-sal-min').value) || 0;
+            const maxSal = parseFloat(document.getElementById('filter-sal-max').value) || Infinity;
+
+            filteredEmployees = rawEmployees.filter(emp => {
+                if (dept !== 'ALL' && emp.DEPARTMENT !== dept) return false;
+                if (title !== 'ALL' && emp.TITLE !== title) return false;
+                if (emp.SALARY < minSal || emp.SALARY > maxSal) return false;
+                return true;
+            });
+
+            // Update filter count badge
+            const isFiltered = filteredEmployees.length !== rawEmployees.length;
+            document.getElementById('filter-count-badge').innerText = isFiltered 
+                ? `Filtered (${filteredEmployees.length}/${rawEmployees.length})` 
+                : `All Data (${rawEmployees.length})`;
+
+            updateDashboardUI();
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-dept').value = 'ALL';
+            document.getElementById('filter-title').value = 'ALL';
+            document.getElementById('filter-sal-min').value = '';
+            document.getElementById('filter-sal-max').value = '';
+
+            filteredEmployees = [...rawEmployees];
+            document.getElementById('filter-count-badge').innerText = `All Data (${rawEmployees.length})`;
+            updateDashboardUI();
+        }
+
+        function updateDashboardUI() {
+            renderKPIs();
+            renderDepartmentCharts();
+            renderScatterPlot();
+            renderInsights();
+            renderTable();
+            renderDataQuality();
+        }
+
+        /* 1. KPI Calculation */
+        function renderKPIs() {
+            const count = filteredEmployees.length;
+            const totalPayroll = filteredEmployees.reduce((sum, e) => sum + e.SALARY, 0);
+            const avgSal = count > 0 ? (totalPayroll / count) : 0;
+            const totalBonus = filteredEmployees.reduce((sum, e) => sum + e.TOTAL_BONUS, 0);
+            const ratio = totalPayroll > 0 ? ((totalBonus / totalPayroll) * 100) : 0;
+
+            document.getElementById('kpi-val-workers').innerText = count.toLocaleString();
+            document.getElementById('kpi-val-payroll').innerText = '$' + Math.round(totalPayroll).toLocaleString();
+            document.getElementById('kpi-val-avg-sal').innerText = '$' + Math.round(avgSal).toLocaleString();
+            document.getElementById('kpi-val-bonus').innerText = '$' + Math.round(totalBonus).toLocaleString();
+            document.getElementById('kpi-val-ratio').innerText = ratio.toFixed(2) + '%';
+        }
+
+        /* 2. Department Analysis Charts */
+        function renderDepartmentCharts() {
+            const deptMap = {};
+            filteredEmployees.forEach(e => {
+                if (!deptMap[e.DEPARTMENT]) {
+                    deptMap[e.DEPARTMENT] = { headcount: 0, payroll: 0, bonus: 0, bonusRecipients: 0 };
+                }
+                deptMap[e.DEPARTMENT].headcount += 1;
+                deptMap[e.DEPARTMENT].payroll += e.SALARY;
+                deptMap[e.DEPARTMENT].bonus += e.TOTAL_BONUS;
+                if (e.TOTAL_BONUS > 0) deptMap[e.DEPARTMENT].bonusRecipients += 1;
+            });
+
+            const sortedDepts = Object.keys(deptMap).map(d => ({
+                dept: d,
+                headcount: deptMap[d].headcount,
+                payroll: deptMap[d].payroll,
+                avgSalary: deptMap[d].headcount > 0 ? Math.round(deptMap[d].payroll / deptMap[d].headcount) : 0,
+                bonus: deptMap[d].bonus,
+                avgBonusPerEmp: deptMap[d].headcount > 0 ? Math.round(deptMap[d].bonus / deptMap[d].headcount) : 0
+            })).sort((a, b) => b.payroll - a.payroll);
+
+            const labels = sortedDepts.map(d => d.dept);
+            const bgColors = labels.map(l => DEPT_COLORS[l] || DEPT_COLORS.Default);
+
+            // Chart 1: Annual Payroll by Department
+            renderBarChart('chart-dept-payroll', {
+                type: 'bar',
+                indexAxis: 'y',
+                labels: labels,
+                datasets: [{
+                    label: 'Total Payroll ($)',
+                    data: sortedDepts.map(d => d.payroll),
+                    backgroundColor: bgColors,
+                    borderRadius: 6
+                }],
+                formatMoney: true
+            });
+
+            // Chart 2: Employees by Department
+            const sortedByHeadcount = [...sortedDepts].sort((a, b) => b.headcount - a.headcount);
+            renderBarChart('chart-dept-headcount', {
+                type: 'bar',
+                indexAxis: 'y',
+                labels: sortedByHeadcount.map(d => d.dept),
+                datasets: [{
+                    label: 'Headcount',
+                    data: sortedByHeadcount.map(d => d.headcount),
+                    backgroundColor: sortedByHeadcount.map(d => DEPT_COLORS[d.dept] || DEPT_COLORS.Default),
+                    borderRadius: 6
+                }],
+                formatMoney: false
+            });
+
+            // Chart 3: Average Salary by Department
+            const sortedByAvgSal = [...sortedDepts].sort((a, b) => b.avgSalary - a.avgSalary);
+            renderBarChart('chart-dept-avg-salary', {
+                type: 'bar',
+                indexAxis: 'x',
+                labels: sortedByAvgSal.map(d => d.dept),
+                datasets: [{
+                    label: 'Average Annual Salary ($)',
+                    data: sortedByAvgSal.map(d => d.avgSalary),
+                    backgroundColor: sortedByAvgSal.map(d => DEPT_COLORS[d.dept] || DEPT_COLORS.Default),
+                    borderRadius: 6
+                }],
+                formatMoney: true
+            });
+
+            // Chart 4: Bonus Breakdown by Department
+            renderBarChart('chart-dept-bonus', {
+                type: 'bar',
+                indexAxis: 'x',
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Total Bonus ($)',
+                        data: sortedDepts.map(d => d.bonus),
+                        backgroundColor: '#059669',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Avg Bonus / Employee ($)',
+                        data: sortedDepts.map(d => d.avgBonusPerEmp),
+                        backgroundColor: '#a7f3d0',
+                        borderRadius: 6
+                    }
+                ],
+                formatMoney: true
+            });
+        }
+
+        function renderBarChart(canvasId, config) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
+
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: config.type,
+                data: {
+                    labels: config.labels,
+                    datasets: config.datasets
+                },
+                options: {
+                    indexAxis: config.indexAxis || 'x',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: config.datasets.length > 1,
+                            labels: { font: { family: 'Inter', size: 12 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw;
+                                    if (config.formatMoney) {
+                                        val = '$' + Number(val).toLocaleString();
+                                    }
+                                    return `${context.dataset.label}: ${val}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Inter', size: 11 } } },
+                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Inter', size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        /* 3. Salary vs Bonus Scatter Plot */
+        function renderScatterPlot() {
+            const ctx = document.getElementById('chart-scatter-salary-bonus').getContext('2d');
+            if (chartInstances['scatter']) {
+                chartInstances['scatter'].destroy();
+            }
+
+            const depts = ['Admin', 'Account', 'HR'];
+            const datasets = depts.map(dept => {
+                const deptEmps = filteredEmployees.filter(e => e.DEPARTMENT === dept);
+                return {
+                    label: dept,
+                    data: deptEmps.map(e => ({
+                        x: e.SALARY,
+                        y: e.TOTAL_BONUS,
+                        emp: e
+                    })),
+                    backgroundColor: DEPT_COLORS[dept],
+                    pointRadius: 7,
+                    pointHoverRadius: 10
+                };
+            });
+
+            chartInstances['scatter'] = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Inter', size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const emp = context.raw.emp;
+                                    return [
+                                        `Employee: ${emp.FULL_NAME}`,
+                                        `Department: ${emp.DEPARTMENT} (${emp.TITLE})`,
+                                        `Annual Salary: $${emp.SALARY.toLocaleString()}`,
+                                        `Total Bonus: $${emp.TOTAL_BONUS.toLocaleString()}`,
+                                        `Total Earnings: $${emp.TOTAL_EARNINGS.toLocaleString()}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Annual Base Salary ($)', font: { family: 'Inter', size: 12, weight: 'bold' } },
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: v => '$' + Number(v).toLocaleString() }
+                        },
+                        y: {
+                            title: { display: true, text: 'Total Bonus ($)', font: { family: 'Inter', size: 12, weight: 'bold' } },
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: v => '$' + Number(v).toLocaleString() }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* 4. Executive Analytical Insights Generator */
+        function renderInsights() {
+            const container = document.getElementById('insights-container');
+            if (filteredEmployees.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted)">No data available for active filter criteria.</div>';
+                return;
+            }
+
+            const totalPayroll = filteredEmployees.reduce((s, e) => s + e.SALARY, 0);
+
+            const deptStats = {};
+            filteredEmployees.forEach(e => {
+                if (!deptStats[e.DEPARTMENT]) deptStats[e.DEPARTMENT] = { payroll: 0, count: 0, bonus: 0 };
+                deptStats[e.DEPARTMENT].payroll += e.SALARY;
+                deptStats[e.DEPARTMENT].count += 1;
+                deptStats[e.DEPARTMENT].bonus += e.TOTAL_BONUS;
+            });
+
+            const sortedDepts = Object.keys(deptStats).map(d => ({
+                dept: d,
+                payroll: deptStats[d].payroll,
+                count: deptStats[d].count,
+                bonus: deptStats[d].bonus,
+                pctPayroll: totalPayroll > 0 ? ((deptStats[d].payroll / totalPayroll) * 100).toFixed(1) : 0,
+                avgSalary: deptStats[d].count > 0 ? Math.round(deptStats[d].payroll / deptStats[d].count) : 0
+            })).sort((a, b) => b.payroll - a.payroll);
+
+            const topDept = sortedDepts[0];
+            const highestAvgSalDept = [...sortedDepts].sort((a, b) => b.avgSalary - a.avgSalary)[0];
+            const topBonusDept = [...sortedDepts].sort((a, b) => b.bonus - a.bonus)[0];
+
+            container.innerHTML = `
+                <div class="insight-card">
+                    <div class="insight-tag">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        Payroll Concentration
+                    </div>
+                    <div class="insight-title">${topDept.dept} Department</div>
+                    <div class="insight-text">
+                        The <strong>${topDept.dept}</strong> department represents <strong>${topDept.pctPayroll}%</strong> ($${topDept.payroll.toLocaleString()}) of total annual payroll across ${topDept.count} employees.
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-tag">
+                        <svg class="icon" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                        Compensation Leader
+                    </div>
+                    <div class="insight-title">Highest Average Salary</div>
+                    <div class="insight-text">
+                        <strong>${highestAvgSalDept.dept}</strong> maintains the highest mean annual salary at <strong>$${highestAvgSalDept.avgSalary.toLocaleString()}</strong> per employee.
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-tag">
+                        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/></svg>
+                        Bonus Allocation
+                    </div>
+                    <div class="insight-title">Bonus Distribution Pattern</div>
+                    <div class="insight-text">
+                        <strong>${topBonusDept.dept}</strong> accounts for <strong>$${topBonusDept.bonus.toLocaleString()}</strong> in bonus payments, representing the largest historical bonus share.
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-tag">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Governance & Data Quality
+                    </div>
+                    <div class="insight-title">Title Categorization</div>
+                    <div class="insight-text">
+                        <strong>50.0%</strong> of worker records lack explicit job title assignments and default to <strong>Executive</strong> per corporate assignment guidelines.
+                    </div>
+                </div>
+            `;
+        }
+
+        /* 5. Employee Detail Table & Card View */
+        function renderTable() {
+            const tbody = document.getElementById('emp-table-tbody');
+            const cardGrid = document.getElementById('emp-card-grid');
+            const searchVal = document.getElementById('table-search').value.toLowerCase().trim();
+
+            let rows = filteredEmployees.filter(e => {
+                if (!searchVal) return true;
+                return e.FULL_NAME.toLowerCase().includes(searchVal) ||
+                       e.DEPARTMENT.toLowerCase().includes(searchVal) ||
+                       e.TITLE.toLowerCase().includes(searchVal) ||
+                       e.WORKER_ID.toString().includes(searchVal);
+            });
+
+            rows.sort((a, b) => {
+                let valA = a[currentSortCol];
+                let valB = b[currentSortCol];
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return currentSortAsc ? -1 : 1;
+                if (valA > valB) return currentSortAsc ? 1 : -1;
+                return 0;
+            });
+
+            document.getElementById('table-showing-text').innerText = `Showing ${rows.length} of ${rawEmployees.length} employees`;
+
+            if (rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No matching employee records found.</td></tr>`;
+                cardGrid.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No matching employee records found.</div>`;
+                return;
+            }
+
+            // Render Table Rows
+            tbody.innerHTML = rows.map(e => `
+                <tr>
+                    <td>#${e.WORKER_ID}</td>
+                    <td><strong>${e.FULL_NAME}</strong></td>
+                    <td><span class="badge-dept ${e.DEPARTMENT}">${e.DEPARTMENT}</span></td>
+                    <td>
+                        ${e.TITLE}
+                        ${e.IS_TITLE_DEFAULTED ? '<span class="badge-title-default">Defaulted</span>' : ''}
+                    </td>
+                    <td>$${e.SALARY.toLocaleString()}</td>
+                    <td>$${e.TOTAL_BONUS.toLocaleString()}</td>
+                    <td><strong style="color: var(--brand-emerald);">$${e.TOTAL_EARNINGS.toLocaleString()}</strong></td>
+                </tr>
+            `).join('');
+
+            // Render Mobile Cards
+            cardGrid.innerHTML = rows.map(e => `
+                <div class="emp-mobile-card">
+                    <div class="emp-mobile-card-header">
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">#${e.WORKER_ID}</span>
+                            <div class="emp-mobile-card-title">${e.FULL_NAME}</div>
+                        </div>
+                        <span class="badge-dept ${e.DEPARTMENT}">${e.DEPARTMENT}</span>
+                    </div>
+
+                    <div class="emp-mobile-card-body">
+                        <div class="emp-mobile-field">
+                            <span class="emp-mobile-label">Job Title</span>
+                            <span class="emp-mobile-val">
+                                ${e.TITLE}
+                                ${e.IS_TITLE_DEFAULTED ? '<span class="badge-title-default">Defaulted</span>' : ''}
+                            </span>
+                        </div>
+                        <div class="emp-mobile-field">
+                            <span class="emp-mobile-label">Base Salary</span>
+                            <span class="emp-mobile-val">$${e.SALARY.toLocaleString()}</span>
+                        </div>
+                        <div class="emp-mobile-field">
+                            <span class="emp-mobile-label">Bonus</span>
+                            <span class="emp-mobile-val">$${e.TOTAL_BONUS.toLocaleString()}</span>
+                        </div>
+                        <div class="emp-mobile-field">
+                            <span class="emp-mobile-label">Total Earnings</span>
+                            <span class="emp-mobile-val" style="color: var(--brand-emerald);">$${e.TOTAL_EARNINGS.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function sortEmployeeTable(col) {
+            if (currentSortCol === col) {
+                currentSortAsc = !currentSortAsc;
+            } else {
+                currentSortCol = col;
+                currentSortAsc = true;
+            }
+            renderTable();
+        }
+
+        /* 6. Data Quality Metrics */
+        function renderDataQuality() {
+            const total = rawEmployees.length;
+            const defaulted = rawEmployees.filter(e => e.IS_TITLE_DEFAULTED).length;
+            const withBonus = rawEmployees.filter(e => e.TOTAL_BONUS > 0).length;
+            const noBonus = total - withBonus;
+
+            document.getElementById('dq-val-default-titles').innerText = `${defaulted} (${((defaulted/total)*100).toFixed(1)}%)`;
+            document.getElementById('dq-val-bonus-recipients').innerText = `${withBonus} (${((withBonus/total)*100).toFixed(1)}%)`;
+            document.getElementById('dq-val-no-bonus').innerText = `${noBonus} (${((noBonus/total)*100).toFixed(1)}%)`;
+        }
+
+        /* 7. SQL Query Workbench View Logic */
+        async function fetchPresetQueries() {
+            try {
+                const res = await fetch('/api/preset-queries');
+                presetQueries = await res.json();
+                const container = document.getElementById('sql-presets-list');
+
+                container.innerHTML = Object.keys(presetQueries).map(key => `
+                    <div class="sql-preset-item" onclick="selectPresetQuery('${key}')">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--brand-primary);">${key}</div>
+                        <div style="font-size: 0.85rem; font-weight: 600; margin-top: 0.1rem;">${presetQueries[key].title}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Failed loading preset queries", err);
+            }
+        }
+
+        function selectPresetQuery(key) {
+            const item = presetQueries[key];
+            if (!item) return;
+            document.getElementById('sql-query-title').innerText = `${key}: ${item.title}`;
+            document.getElementById('sql-input-area').value = item.sql;
+            runCustomQuery();
+        }
+
+        async function runCustomQuery() {
+            const sql = document.getElementById('sql-input-area').value.trim();
+            const wrapper = document.getElementById('sql-results-wrapper');
+            const info = document.getElementById('sql-exec-info');
+
+            if (!sql) return;
+
+            info.innerText = "Executing query...";
+            try {
+                const res = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sql })
+                });
+                const json = await res.json();
+                if (!json.success) {
+                    info.innerText = "Error";
+                    wrapper.innerHTML = `<div style="color: #ef4444; padding: 1rem;">⚠️ ${json.error}</div>`;
+                    return;
+                }
+
+                info.innerText = `Fetched ${json.row_count} row(s) in ${json.execution_time_ms} ms`;
+                if (json.data.length === 0) {
+                    wrapper.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Query executed successfully. 0 rows returned.</div>';
+                    return;
+                }
+
+                const cols = Object.keys(json.data[0]);
+                wrapper.innerHTML = `
+                    <table class="emp-table">
+                        <thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            ${json.data.map(r => `
+                                <tr>${cols.map(c => `<td>${r[c] !== null ? r[c] : '<em>NULL</em>'}</td>`).join('')}</tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (err) {
+                info.innerText = "Server error";
+                wrapper.innerHTML = `<div style="color: #ef4444; padding: 1rem;">⚠️ ${err.message}</div>`;
+            }
+        }
+
+        async function fetchRawTables() {
+            try {
+                const res = await fetch('/api/tables');
+                const data = await res.json();
+
+                renderRawTableHtml('raw-table-worker', data.Worker);
+                renderRawTableHtml('raw-table-bonus', data.Bonus);
+                renderRawTableHtml('raw-table-title', data.Title);
+            } catch (err) {
+                console.error("Failed loading raw dataset tables", err);
+            }
+        }
+
+        function renderRawTableHtml(id, rows) {
+            const table = document.getElementById(id);
+            if (!rows || rows.length === 0) return;
+            const cols = Object.keys(rows[0]);
+
+            table.querySelector('thead').innerHTML = `<tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>`;
+            table.querySelector('tbody').innerHTML = rows.map(r => `
+                <tr>${cols.map(c => `<td>${r[c]}</td>`).join('')}</tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
