@@ -1448,11 +1448,14 @@
             }
             document.getElementById(`view-${tabId}`).classList.add('active');
 
-            // Trigger chart resize if switching to dashboard
+            // Auto refresh data when switching tabs
             if (tabId === 'dashboard') {
+                fetchEmployeesData();
                 setTimeout(() => {
                     Object.values(chartInstances).forEach(chart => chart.resize());
                 }, 50);
+            } else if (tabId === 'raw-data') {
+                fetchRawTables();
             }
         }
 
@@ -1981,6 +1984,13 @@
                     info.innerText = "Error";
                     wrapper.innerHTML = `<div style="color: #ef4444; padding: 1rem;">⚠️ ${json.error}</div>`;
                     return;
+                }
+
+                // Auto refresh dataset across tabs if SQL modified data (INSERT, UPDATE, DELETE, etc.)
+                const upperSql = sql.toUpperCase();
+                if (upperSql.includes('INSERT') || upperSql.includes('UPDATE') || upperSql.includes('DELETE') || upperSql.includes('DROP') || upperSql.includes('CREATE') || upperSql.includes('ALTER')) {
+                    fetchRawTables();
+                    fetchEmployeesData();
                 }
 
                 info.innerText = `Fetched ${json.row_count} row(s) in ${json.execution_time_ms} ms`;
